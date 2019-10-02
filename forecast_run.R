@@ -28,4 +28,11 @@ x = read_csv(f[1]) %>%
 # ---------------------------------------
 # Model run
 
-y = model(st = filter(x, model == 1 & year == 2019))
+y = model(st = filter(x, model == 1))
+
+y %>% 
+   group_by(year) %>% 
+   summarise(M50 = sum(M50)) %>% 
+   ggplot(aes(year, M50)) +
+   geom_point() +
+   stat_smooth()

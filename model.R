@@ -14,9 +14,10 @@ model = function(st, temp.b=1, DDF=5.5, den=120, den.i=2.5, DDF.d=0.01, d.50=100
    d = data.frame(Date = character(nrow(st)+1),
                   SWE = numeric(nrow(st)+1),
                   Melt = numeric(nrow(st)+1),
-                  PrecipEff = numeric(nrow(st)+1))
+                  PrecipEff = numeric(nrow(st)+1),
+                  stringsAsFactors = F)
 # Warmup row
-   d$Date = as.character(c(st$Date[1]-1, st$Date))
+   d$Date = c("2019_180", st$Date)
 # Time steps
    for (i in 1:nrow(st)){
       j = i+1
@@ -56,7 +57,7 @@ model = function(st, temp.b=1, DDF=5.5, den=120, den.i=2.5, DDF.d=0.01, d.50=100
 		   d$PrecipEff[j] = st$Precip[i] + d$Melt[j]
       }
    }
-   d$Date = as.Date(d$Date)
+   
    d = merge(st, d, by="Date", all.x=T)
    # Add model snow/no snow
    d$Model = 0
