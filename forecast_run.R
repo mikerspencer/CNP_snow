@@ -9,13 +9,21 @@ source("model.R")
 
 
 # ---------------------------------------
-# Data
+# Data in
 
 f = list.files("~/Documents/CNP_snow/data/forecast/Data", full.names = T)
 
-read_csv(f[1]) %>% 
+x = read_csv(f[1]) %>% 
    gather(var, value, -observation_id, -year, -doy) %>% 
    separate(var, c("var", "model")) %>% 
    spread(var, value) %>% 
-   mutate(temp = mean(c(max, min))) %>% 
-   select(-min, -max)
+   mutate(meantemp = mean(c(max, min))) %>% 
+   mutate(year = if_else(doy < 180, year - 1, year),
+          dowy = if_else(doy < 181, doy + 180, doy - 180)) %>% 
+   select(-min, -max, -doy, Precip = rainfall)
+
+
+# ---------------------------------------
+# Model run
+
+y = model(x)
