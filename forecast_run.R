@@ -12,13 +12,14 @@ source("model.R")
 # ---------------------------------------
 # files
 
-f = list.files("~/Documents/CNP_snow/data/forecast/Data", full.names = T)
-
+f = list.files("../Data", full.names = T)
+f = f[1:2]
 
 # ---------------------------------------
 # Read, clean and run
 
-cg = lapply(f, function(i){
+tic = proc.time()
+cg = mclapply(f, mc.cores = 50, function(i){
    # Data in
    x = read_csv(i) %>% 
       gather(var, value, -observation_id, -year, -doy) %>% 
@@ -30,7 +31,7 @@ cg = lapply(f, function(i){
              Date = paste(year, dowy, sep = "_")) %>% 
       select(-min, -max, -doy, Precip = rainfall)
    
-   z = mclapply(unique(x$model), mc.cores = 3, function(j){
+   z = lapply(unique(x$model), function(j){
       # Model run
       y = model(st = filter(x, model == j))
       
@@ -41,11 +42,12 @@ cg = lapply(f, function(i){
    })
    do.call("rbind.data.frame", z)
 })
+proc.time() - tic
+
+cg = do.call("rbind.data.frame", cg)
 
 
 # ---------------------------------------
-# QA Plot
+# Write
 
-ggplot(z, aes(year, M50)) +
-   geom_point(aes(colour = model)) +
-   stat_smooth(SE = F)
+write_csv(cg, "../forecast_run.csv")
