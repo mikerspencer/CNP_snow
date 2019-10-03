@@ -34,8 +34,9 @@ extractor = function(cell.x, cell.y, id){
             paste0(
                i, "-10-01")),
          by=1, length.out=length(y)
-      ), round(y))
-      
+      ),
+      M50 = round(y),
+      wy = i)
    })
    x = do.call("rbind.data.frame", x)
    colnames(x)[2] = "M50"
@@ -63,3 +64,9 @@ x = do.call("rbind.data.frame", x)
 
 ggplot(x, aes(date, cumulative)) +
    geom_point(aes(colour=cell_id))
+
+x %>% 
+   group_by(cell_id, wy) %>% 
+   summarise(M50 = sum(M50)) %>% 
+   ggplot(aes(wy, M50, colour = cell_id)) +
+   geom_point()
