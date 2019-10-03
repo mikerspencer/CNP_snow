@@ -19,7 +19,7 @@ index = readOGR("~/Documents/CNP_snow/data/Cairngorms.gpkg", "forecast_grid")@da
 # ---------------------------------------
 # Extract from NetCDF
 
-extractor = function(cell.x, cell.y){
+extractor = function(cell.x, cell.y, id){
    x = lapply(1960:2010, function(i){
       nc = nc_open(paste0("~/Documents/PhD/calcs/Snow_mod/results/grid/full_", i, ".nc"))
       y = ncvar_get(nc,
@@ -38,44 +38,27 @@ extractor = function(cell.x, cell.y){
    })
    x = do.call("rbind.data.frame", x)
    colnames(x)[2] = "M50"
+   x$cell_id = id
    x
 }
 
 # run
 for(r in 1:nrow(index)){
-   M50 = extractor(index$ncdf_x[r], index$ncdf_y[r])
-   write.csv(M50, paste0("~/Documents/CNP_snow/results/M50_", index[r, 1], ".csv"), row.names=F, quote=F)
+   M50 = extractor(index$ncdf_x[r], index$ncdf_y[r], id = index$forecast_id[r])
+   write.csv(M50, paste0("~/Documents/CNP_snow/results/M50_", index$forecast_id[r], ".csv"), row.names=F, quote=F)
 }
 
 
 # ---------------------------------------
 # Check
 
-f = list.files("~/Downloads/temp", pattern="SWE", full.names=T)
-x = lapply(f, function(i){
+f = list.files("~/Documents/CNP_snow/results", pattern="M50", full.names=T)
+x = lapply(f[1:4], function(i){
    y = read.csv(i)
-   y$name = strsplit(i, "/")[[1]][6]
-   y$cumulative = cumsum(y$swe)
+   y$cumulative = cumsum(y$M50)
    y
 })
+x = do.call("rbind.data.frame", x)
 
 ggplot(x, aes(date, cumulative)) +
-   geom_point(aes(colour=name))
-
-
-f = list.files("~/Downloads/temp", pattern="temp_", full.names=T)
-x = lapply(f, function(i){
-   y = read.csv(i)
-   y$name = strsplit(i, "/")[[1]][6]
-   y
-})
-
-x = do.call("rbind.data.frame", x)
-x$date = as.Date(x$date)
-x$Julian = format(x$date, "%J")
-
-ggplot(x, aes(date, temp)) +
-   geom_point(aes(colour=name))
-
-ggplot(x, aes(Julian, temp)) +
-   geom_point(aes(colour=name))
+   geom_point(aes(colour=cell_id))
