@@ -4,6 +4,7 @@
 # ---------------------------------------
 # ---------------------------------------
 
+library(tidyverse)
 library(rgdal)
 library(ncdf4)
 library(ggplot2)
@@ -54,7 +55,7 @@ for(r in 1:nrow(index)){
 
 f = list.files("~/Documents/CNP_snow/results", pattern="M50", full.names=T)
 x = lapply(f[1:4], function(i){
-   y = read.csv(i)
+   y = read_csv(i)
    y$cumulative = cumsum(y$M50)
    y
 })
