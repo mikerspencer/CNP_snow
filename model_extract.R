@@ -46,7 +46,11 @@ extractor = function(cell.x, cell.y, id){
 
 # run
 for(r in 1:nrow(index)){
-   M50 = extractor(index$ncdf_x[r], index$ncdf_y[r], id = index$forecast_id[r])
+   M50 = extractor(index$ncdf_x[r], index$ncdf_y[r], id = index$forecast_id[r]) %>% 
+      group_by(cell_id, wy) %>% 
+      summarise(M50 = sum(M50)) %>% 
+      add_column(model = "historic") %>% 
+      ungroup()
    write.csv(M50, paste0("~/Documents/CNP_snow/results/M50_", index$forecast_id[r], ".csv"), row.names=F, quote=F)
 }
 
@@ -55,18 +59,8 @@ for(r in 1:nrow(index)){
 # Check
 
 f = list.files("~/Documents/CNP_snow/results", pattern="M50", full.names=T)
-x = lapply(f[1:4], function(i){
-   y = read_csv(i)
-   y$cumulative = cumsum(y$M50)
-   y
-})
+x = lapply(f[1:4], read_csv)
 x = do.call("rbind.data.frame", x)
 
-ggplot(x, aes(date, cumulative)) +
+ggplot(x, aes(wy, M50)) +
    geom_point(aes(colour=cell_id))
-
-x %>% 
-   group_by(cell_id, wy) %>% 
-   summarise(M50 = sum(M50)) %>% 
-   ggplot(aes(wy, M50, colour = cell_id)) +
-   geom_point()
