@@ -1,0 +1,96 @@
+---
+title: "CNP snow cover"
+author: "Mike Spencer"
+date: "2019-10-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F)
+```
+
+## Intro
+
+This is a summary of the modelling work completed on behalf of Cairngorm National Park under the CXC programme.
+
+This document is a record of the analysis of the model results compiled in Rmarkdown.
+
+M Spencer developed a degree-day snow model, which was run using historic data between winters beginning in 1960 and 2010. Met Office climate forecast data were supplied by the JHI for 12 ensemble runs. These were each run for calendar years 2019 to 2080.
+
+
+```{r packages}
+library(tidyverse)
+library(sf)
+library(raster)
+library(tmap)
+```
+
+```{r data}
+park = read_sf("~/Documents/CNP_snow/data/Cairngorms.gpkg", "Cairngorms")
+cells = read_sf("~/Documents/CNP_snow/data/Cairngorms.gpkg", "forecast_grid")
+elev = raster("~/GIS/OS/Terrain50_GB.tif", crs = st_crs(park)$proj4string) %>% 
+   crop(extent(cells))
+mod_fore = read_csv("~/Documents/CNP_snow/results/forecast_run.csv") %>% 
+   rename(wy = year, cell_id = observation_id) %>% 
+   mutate(model = as.character(model))
+f = list.files("~/Documents/CNP_snow/results", pattern = "M50", full.names = T)
+mod_hist = lapply(f, read_csv)
+mod_hist = do.call("rbind.data.frame", mod_hist)
+```
+
+
+## Map of model area
+
+The model was run on a 5 km grid for the Cairngorm NP, which comprises 226 grid cells.
+
+```{r map, fig.width=10, fig.height=3.75}
+tmap_arrange(
+   tm_shape(elev) +
+      tm_raster(style = "cont", palette = "Greys", legend.show = TRUE, title = "Elevation (m)") +
+      tm_shape(cells) +
+      tm_borders(col = "darkorange", lwd = 1.5) +
+      tm_shape(park) +
+      tm_borders(col = "black", lwd = 2),
+   tm_shape(cells) +
+      tm_fill(col = "elev_mean", title = "Mean\nElevation (m)") +
+      tm_shape(park) +
+      tm_borders(col = "black", lwd = 2)
+)
+```
+
+
+## Model results
+
+Model results were split by elevation groups:
+
+* 200-400 m
+* 400-600 m
+* 600-800 m
+* over 800 m
+
+```{r elevation grouping}
+mod_comb = bind_rows(mod_hist, mod_fore) %>% 
+   left_join(as_tibble(cells) %>% 
+                dplyr::select(forecast_id, elev_mean),
+             by = c(cell_id = "forecast_id")) %>% 
+   mutate(elev = cut_width(elev_mean,
+                           width = 200,
+                           boundary = 0,
+                           label = c("0 - 200 m", "200 - 400 m", "400 - 600 m", "600 - 800 m", "over 800 m"))) %>% 
+   group_by(wy, model, elev) %>% 
+   summarise(M50 = mean(M50))
+```
+
+
+```{r plot, fig.width=10, fig.height=7}
+ggplot(mod_comb, aes(wy, M50)) +
+   geom_line(aes(group = model), colour = "grey50", alpha = 0.2) +
+   facet_wrap(~elev, scales = "free_y") +
+   stat_smooth(se = F, colour = "Black") +
+   labs(title = "Annual daily snow cover",
+        subtitle = "Cairngorms national park, 1960 - 2080",
+        x = "Year",
+        y = "Snow cover (days per year)") +
+   theme_bw()
+```
+
