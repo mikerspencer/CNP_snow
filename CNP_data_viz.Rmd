@@ -1,0 +1,82 @@
+---
+title: "CNP snow cover dataviz"
+author: "Mike Spencer"
+date: "2019-10-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F)
+```
+
+## Intro
+
+This doc splits grid cells into elevation groups and generates dataviz plots.
+
+
+```{r packages}
+library(tidyverse)
+library(sf)
+```
+
+```{r data}
+cells = read_sf("~/Documents/CNP_snow/data/Cairngorms.gpkg", "forecast_grid")
+mod_fore = read_csv("~/Documents/CNP_snow/results/forecast_run.csv") %>% 
+   rename(wy = year, cell_id = observation_id) %>% 
+   mutate(model = as.character(model))
+f = list.files("~/Documents/CNP_snow/results", pattern = "M50", full.names = T)
+mod_hist = lapply(f, read_csv)
+mod_hist = do.call("rbind.data.frame", mod_hist)
+```
+
+
+## Elevation splits
+
+```{r elevation}
+ggplot(cells, aes(elev_mean)) +
+   geom_histogram(bins = 50) +
+   geom_vline(xintercept = 550)
+
+sum(cells$elev_mean >= 550)
+sum(cells$elev_mean < 550)
+```
+
+
+## Plots of snow cover
+
+```{r elevation grouping}
+mod_comb = bind_rows(mod_hist, mod_fore) %>% 
+   left_join(as_tibble(cells) %>% 
+                dplyr::select(forecast_id, elev_mean),
+             by = c(cell_id = "forecast_id")) %>% 
+   mutate(elev = if_else(elev_mean < 550, "Below 550 m", "Above 550 m")) %>% 
+   group_by(wy, model, elev) %>% 
+   summarise(M50 = mean(M50))
+```
+
+
+```{r plot, fig.width=11, fig.height=7}
+mod_comb %>% 
+   filter(elev == "Above 550 m") %>% 
+   ggplot(aes(wy, M50)) +
+   geom_line(aes(group = model), colour = "#008837", alpha = 0.2) +
+   stat_smooth(se = F, colour = "#008837", lwd = 2) +
+   labs(title = "Snow cover above 550 m",
+        x = "Year",
+        y = "Snow cover (days per year)") +
+   theme_bw() +
+   theme(text = element_text(size = 35))
+ggsave("~/Cloud/Michael/SRUC/CXC/CNP - snow/figures/high_snow.png")
+
+mod_comb %>% 
+   filter(elev == "Below 550 m") %>% 
+   ggplot(aes(wy, M50)) +
+   geom_line(aes(group = model), colour = "#7b3294", alpha = 0.2) +
+   stat_smooth(se = F, colour = "#7b3294", lwd = 2) +
+   labs(title = "Snow cover below 550 m",
+        x = "Year",
+        y = "Snow cover (days per year)") +
+   theme_bw() +
+   theme(text = element_text(size = 35))
+ggsave("~/Cloud/Michael/SRUC/CXC/CNP - snow/figures/low_snow.png")
+```
