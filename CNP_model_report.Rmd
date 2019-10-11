@@ -68,6 +68,8 @@ Model results were split by elevation groups:
 * 600-800 m
 * over 800 m
 
+The model considers a cell is snow covered when there is greater than 50 % cover.
+
 ```{r elevation grouping}
 mod_comb = bind_rows(mod_hist, mod_fore) %>% 
    left_join(as_tibble(cells) %>% 
