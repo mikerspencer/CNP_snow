@@ -1,0 +1,74 @@
+---
+title: "CNP snow cover"
+author: "Mike Spencer"
+date: "2019-10-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, message = F)
+```
+
+## Intro
+
+This is a summary of the modelling work completed on behalf of Cairngorm National Park under the CXC programme.
+
+This document is a record of the analysis of the model results compiled in Rmarkdown.
+
+M Spencer developed a degree-day snow model, which was run using historic data between winters beginning in 1960 and 2010. Met Office climate forecast data were supplied by the JHI for 12 ensemble runs. These were each run for calendar years 2019 to 2080.
+
+
+```{r packages}
+library(tidyverse)
+library(sf)
+library(raster)
+```
+
+```{r data}
+cells = read_sf("~/Cloud/Michael/SRUC/CXC/CNP_snow/map_data.gpkg", "model_grid")
+mod_fore = read_csv("~/Cloud/Michael/SRUC/CXC/CNP_snow/results/forecast_run.csv") %>% 
+   rename(wy = year, cell_id = observation_id) %>% 
+   mutate(model = as.character(model))
+f = list.files("~/Cloud/Michael/SRUC/CXC/CNP_snow/results", pattern = "M50", full.names = T)
+mod_hist = lapply(f, read_csv)
+mod_hist = do.call("rbind.data.frame", mod_hist)
+```
+
+
+## Model results
+
+Model results were split by elevation groups:
+
+* 0-400 m
+* 400-600 m
+* 600-800 m
+* over 800 m
+
+The model considers a cell is snow covered when there is greater than 50 % cover.
+
+```{r elevation grouping}
+mod_comb = bind_rows(mod_hist, mod_fore) %>% 
+   left_join(as_tibble(cells) %>% 
+                dplyr::select(forecast_id, elev_mean),
+             by = c(cell_id = "forecast_id")) %>% 
+   mutate(elev = cut(elev_mean,
+                           breaks = c(0, 400, 600, 800, 1400),
+                           labels = c("below 400 m", "400 - 600 m", "600 - 800 m", "over 800 m"))) %>% 
+   group_by(wy, model, elev) %>% 
+   summarise(M50 = mean(M50))
+```
+
+
+```{r plot, fig.width=10, fig.height=7}
+ggplot(mod_comb, aes(wy, M50)) +
+   geom_line(aes(group = model), colour = "grey50", alpha = 0.2) +
+   facet_wrap(~elev, scales = "free_y") +
+   stat_smooth(se = F, colour = "Black") +
+   labs(title = "Annual snow cover",
+        subtitle = "Cairngorms national park, 1960 - 2080",
+        x = "Year",
+        y = "Snow cover (days per year)") +
+   theme_bw() +
+   theme(text = element_text(size = 20))
+```
+
