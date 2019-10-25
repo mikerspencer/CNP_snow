@@ -3,13 +3,13 @@
     "contributors": [
         {
             "affiliation": "James Hutton Institute", 
-        "type": "ProjectMember", 
-        "name": "Mike Rivington"
+            "type": "ProjectMember", 
+            "name": "Mike Rivington"
         }, 
         {
-        "affiliation": "James Hutton Institute", 
-        "type": "DataManager", 
-        "name": "Douglas Wardell-Johnson"
+            "affiliation": "James Hutton Institute", 
+            "type": "DataManager", 
+            "name": "Douglas Wardell-Johnson"
         }
     ], 
     "license": "GPL-3.0", 
@@ -26,9 +26,9 @@
         "Kirill M\u00fcller, Hadley Wickham, David A. James and Seth Falcon (2018). RSQLite: 'SQLite' Interface for R. R   package version 2.1.1. https://CRAN.R-project.org/package=RSQLite", 
         "Hadley Wickham (2017). tidyverse: Easily Install and Load the 'Tidyverse'. R package version 1.2.1.   https://CRAN.R-project.org/package=tidyverse", 
         "Roger Bivand, Tim Keitt and Barry Rowlingson (2019). rgdal: Bindings for the 'Geospatial' Data Abstraction   Library. R package version 1.4-3. https://CRAN.R-project.org/package=rgdal", 
-        "Pebesma, E., 2018. Simple Features for R: Standardized Support for Spatial Vector Data. The R Journal 10   (1), 439-446, https://doi.org/10.32614/RJ-2018-009"
-        "Robert J. Hijmans (2019). raster: Geographic Data Analysis and Modeling. R package version 2.9-5.  https://CRAN.R-project.org/package=raster"
-        "Tennekes M (2018). “tmap: Thematic Maps in R.” _Journal of Statistical Software_, *84*(6), 1-39. doi:10.18637/jss.v084.i06 (URL: https://doi.org/10.18637/jss.v084.i06)."
+        "Pebesma, E., 2018. Simple Features for R: Standardized Support for Spatial Vector Data. The R Journal 10   (1), 439-446, https://doi.org/10.32614/RJ-2018-009",
+        "Robert J. Hijmans (2019). raster: Geographic Data Analysis and Modeling. R package version 2.9-5.  https://CRAN.R-project.org/package=raster",
+        "Tennekes M (2018). “tmap: Thematic Maps in R.” _Journal of Statistical Software_, *84*(6), 1-39. doi:10.18637/jss.v084.i06 (URL: https://doi.org/10.18637/jss.v084.i06).",
         "David Pierce (2019). ncdf4: Interface to Unidata netCDF (Version 4 or Earlier) Format Data Files. R package version 1.16.1. https://CRAN.R-project.org/package=ncdf4"
     ], 
     "upload_type": "software", 
